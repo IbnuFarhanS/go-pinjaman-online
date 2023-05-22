@@ -10,7 +10,7 @@ type LoanHistoryRepository interface {
 	Insert(newLoanHistory *entity.Loan_History) (*entity.Loan_History, error)
 	FindByID(id int64) (*entity.Loan_History, error)
 	FindAll() ([]entity.Loan_History, error)
-	Update(updateHistory *entity.Loan_History) (*entity.Loan_History, error)
+	Update(updateLoanHistory *entity.Loan_History) (*entity.Loan_History, error)
 	Delete(deletedLoanHistory *entity.Loan_History) error
 }
 
@@ -77,19 +77,19 @@ func (r *loanHistoryRepository) FindAll() ([]entity.Loan_History, error) {
 }
 
 // ======================= UPDATE ==============================
-func (r *loanHistoryRepository) Update(updateHistory *entity.Loan_History) (*entity.Loan_History, error) {
+func (r *loanHistoryRepository) Update(updateLoanHistory *entity.Loan_History) (*entity.Loan_History, error) {
 	stmt, err := r.db.Prepare("UPDATE loan_history SET id_transaction = $1, history_state = $2, information = $3, change_date = $4, created_at = $5 WHERE id = $6")
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(updateHistory.ID_Transaction.ID, updateHistory.History_State, updateHistory.Information, updateHistory.Change_Date, updateHistory.Created_At, &updateHistory.ID)
+	_, err = stmt.Exec(updateLoanHistory.ID_Transaction.ID, updateLoanHistory.History_State, updateLoanHistory.Information, updateLoanHistory.Change_Date, updateLoanHistory.Created_At, &updateLoanHistory.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return updateHistory, err
+	return updateLoanHistory, err
 }
 
 // ======================= DELETE ==============================
