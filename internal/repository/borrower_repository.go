@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/entity"
 )
@@ -18,7 +19,7 @@ type borrowerRepository struct {
 	db *sql.DB
 }
 
-func newBorrowerRepository(db *sql.DB) BorrowerRepository {
+func NewBorrowerRepository(db *sql.DB) BorrowerRepository {
 	return &borrowerRepository{db}
 }
 
@@ -29,6 +30,8 @@ func (r *borrowerRepository) Insert(newBorrower *entity.Borrower) (*entity.Borro
 		return nil, err
 	}
 	defer stmt.Close()
+	currentTime := time.Now()
+	newBorrower.Created_At = currentTime
 
 	err = stmt.QueryRow(newBorrower.Username, newBorrower.Password, newBorrower.Name, newBorrower.Alamat, newBorrower.Phone_Number, newBorrower.Created_At).Scan(&newBorrower.ID)
 	if err != nil {
@@ -41,13 +44,13 @@ func (r *borrowerRepository) Insert(newBorrower *entity.Borrower) (*entity.Borro
 func (r *borrowerRepository) FindByID(id int64) (*entity.Borrower, error) {
 	var borrower entity.Borrower
 
-	stmt, err := r.db.Prepare("SELECT id, username, password, name, alamat, phone_number, created_at FROM borrower WHERE id = $1")
+	stmt, err := r.db.Prepare("SELECT id, username, password, name, alamat, phone_number FROM borrower WHERE id = $1")
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	stmt.QueryRow(id).Scan(&borrower.ID, &borrower.Username, &borrower.Password, &borrower.Name, &borrower.Alamat, &borrower.Phone_Number, &borrower.Created_At)
+	stmt.QueryRow(id).Scan(&borrower.ID, &borrower.Username, &borrower.Password, &borrower.Name, &borrower.Alamat, &borrower.Phone_Number)
 	if err != nil {
 		return nil, err
 	}
@@ -78,13 +81,13 @@ func (r *borrowerRepository) FindAll() ([]entity.Borrower, error) {
 
 // ======================= UPDATE ==============================
 func (r *borrowerRepository) Update(updateBorrower *entity.Borrower) (*entity.Borrower, error) {
-	stmt, err := r.db.Prepare("UPDATE borrower SET username = $1, password = $2, name = $3, alamat = $4, phone_number = $5, created_at = $6 WHERE id = $7")
+	stmt, err := r.db.Prepare("UPDATE borrower SET username = $1, password = $2, name = $3, alamat = $4, phone_number = $5 WHERE id = $6")
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(updateBorrower.Username, updateBorrower.Password, updateBorrower.Name, updateBorrower.Alamat, updateBorrower.Phone_Number, updateBorrower.Created_At, &updateBorrower.ID)
+	_, err = stmt.Exec(updateBorrower.Username, updateBorrower.Password, updateBorrower.Name, updateBorrower.Alamat, updateBorrower.Phone_Number, &updateBorrower.ID)
 	if err != nil {
 		return nil, err
 	}

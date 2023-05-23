@@ -18,7 +18,7 @@ type lenderRepository struct {
 	db *sql.DB
 }
 
-func newLenderRepository(db *sql.DB) LenderRepository {
+func NewLenderRepository(db *sql.DB) LenderRepository {
 	return &lenderRepository{db}
 }
 
@@ -58,7 +58,7 @@ func (r *lenderRepository) FindByID(id int64) (*entity.Lender, error) {
 // ======================= FIND ALL ==============================
 func (r *lenderRepository) FindAll() ([]entity.Lender, error) {
 	var lenders []entity.Lender
-	rows, err := r.db.Query("SELECT id, username, password, name, alamat, phone_number, created_at FROM lender")
+	rows, err := r.db.Query("SELECT id, name, created_at FROM lender")
 	if err != nil {
 		return nil, err
 	}

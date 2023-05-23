@@ -6,7 +6,7 @@ CREATE TABLE borrower
     name character varying(255) NOT NULL,
 	alamat character varying(255) NOT NULL,
 	phone_number character varying(20) NOT NULL,
-	created_at timestamptz NOT NULL,
+	created_at timestamptz NOT NULL DEFAULT 'NOW()',
     CONSTRAINT borrower_pkey PRIMARY KEY (id)
 );
 
@@ -54,7 +54,7 @@ CREATE TABLE transaction
 CREATE TABLE loan_history
 (
     id bigserial NOT NULL,
-    id_transaksi int REFERENCES transaction(id) NOT NULL,
+    id_transaction int REFERENCES transaction(id) NOT NULL,
 	history_state character varying(255) NOT NULL,
 	information character varying(255) NOT NULL,
 	change_date timestamptz NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE loan_history
 CREATE TABLE payment
 (
     id bigserial NOT NULL,
-    id_transaksi int REFERENCES transaction(id) NOT NULL,
+    id_transaction int REFERENCES transaction(id) NOT NULL,
 	payment_amount character varying(255) NOT NULL,
 	payment_date timestamptz NOT NULL,
 	payment_method character varying(255) NOT NULL,

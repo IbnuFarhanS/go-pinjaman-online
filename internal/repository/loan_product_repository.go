@@ -18,7 +18,7 @@ type loanProductRepository struct {
 	db *sql.DB
 }
 
-func newLoanProductRepository(db *sql.DB) LoanProductRepository {
+func NewLoanProductRepository(db *sql.DB) LoanProductRepository {
 	return &loanProductRepository{db}
 }
 

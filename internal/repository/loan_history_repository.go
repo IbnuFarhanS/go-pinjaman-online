@@ -18,7 +18,7 @@ type loanHistoryRepository struct {
 	db *sql.DB
 }
 
-func newLoanHistoryRepository(db *sql.DB) LoanHistoryRepository {
+func NewLoanHistoryRepository(db *sql.DB) LoanHistoryRepository {
 	return &loanHistoryRepository{db}
 }
 
