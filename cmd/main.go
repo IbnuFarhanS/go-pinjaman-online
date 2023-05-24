@@ -19,6 +19,6 @@ func main() {
 
 	err = server.Start(cfg.ServerAddress)
 	if err != nil {
-		log.Fatalf("failed")
+		log.Fatalf("failed to start the server %v", err)
 	}
 }
