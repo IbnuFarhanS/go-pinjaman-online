@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/entity"
 )
@@ -29,6 +30,9 @@ func (r *transactionRepository) Insert(newTransaction *entity.Transaction) (*ent
 		return nil, err
 	}
 	defer stmt.Close()
+
+	currentTime := time.Now()
+	newTransaction.Transaction_Date = currentTime
 
 	err = stmt.QueryRow(newTransaction.ID_Borrower.ID, newTransaction.ID_Lender.ID, newTransaction.ID_Loan_Product.ID, newTransaction.Loan_Amount, newTransaction.Transaction_Date, newTransaction.Due_Date, newTransaction.Transaction_Status).Scan(&newTransaction.ID)
 	if err != nil {
