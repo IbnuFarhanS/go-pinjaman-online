@@ -13,16 +13,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type server struct {
-	router         *gin.Engine
-	borrowerRouter delivery.BorrowerRouter
+type Server struct {
+	router *gin.Engine
 }
 
-func NewServer() *server {
-	return &server{}
+func NewServer() *Server {
+	return &Server{}
 }
 
-func (s *server) Init(ConnStr string) error {
+func (s *Server) Init(ConnStr string) error {
 	//init db conn
 	dsn := ConnStr
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -31,12 +30,13 @@ func (s *server) Init(ConnStr string) error {
 	}
 
 	db.AutoMigrate(&entity.Borrower{})
+	db.AutoMigrate(&entity.Lender{})
 
 	borrowerRepo := repository.NewBorrowerRepository(db)
 	borrowerUsecase := usecase.NewBorrowerUsecase(borrowerRepo)
 
-	// lenderRepo := repository.NewLenderRepository(db)
-	// lenderUsecase := usecase.NewLenderUsecase(lenderRepo)
+	lenderRepo := repository.NewLenderRepository(db)
+	lenderUsecase := usecase.NewLenderUsecase(lenderRepo)
 
 	// loanHistoryRepo := repository.NewLoanHistoryRepository(db)
 	// loanHistoryUsecase := usecase.NewLoanHistoryUsecase(loanHistoryRepo)
@@ -52,11 +52,11 @@ func (s *server) Init(ConnStr string) error {
 
 	r := gin.Default()
 	api := r.Group("/api")
-	r.POST("/auth/login", delivery.LoginHandler)
-	api.Use(delivery.AuthMiddleware())
+	// r.POST("/auth/login", delivery.LoginHandler)
+	// api.Use(delivery.AuthMiddleware())
 
 	delivery.NewBorrowerRouter(api, borrowerUsecase)
-	// delivery.NewLenderRouter(api, lenderUsecase)
+	delivery.NewLenderRouter(api, lenderUsecase)
 	// delivery.NewLoanHistoryRouter(api, loanHistoryUsecase)
 	// delivery.NewLoanProductRouter(api, loanProductUsecase)
 	// delivery.NewPaymentRouter(api, paymentUsecase)
@@ -67,6 +67,6 @@ func (s *server) Init(ConnStr string) error {
 	return nil
 }
 
-func (s *server) Start(addr string) error {
+func (s *Server) Start(addr string) error {
 	return http.ListenAndServe(addr, s.router)
 }
