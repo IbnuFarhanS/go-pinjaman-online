@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/entity"
+	"gorm.io/gorm"
 )
 
 type BorrowerRepository interface {
@@ -17,25 +17,18 @@ type BorrowerRepository interface {
 }
 
 type borrowerRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewBorrowerRepository(db *sql.DB) BorrowerRepository {
+func NewBorrowerRepository(db *gorm.DB) BorrowerRepository {
 	return &borrowerRepository{db}
 }
 
 // ======================= INSERT ==============================
 func (r *borrowerRepository) Insert(newBorrower *entity.Borrower) (*entity.Borrower, error) {
-	stmt, err := r.db.Prepare("INSERT INTO borrower(username, password, name, alamat, phone_number, created_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
 	currentTime := time.Now()
 	newBorrower.Created_At = currentTime
-
-	err = stmt.QueryRow(newBorrower.Username, newBorrower.Password, newBorrower.Name, newBorrower.Alamat, newBorrower.Phone_Number, newBorrower.Created_At).Scan(&newBorrower.ID)
-	if err != nil {
+	if err := r.db.Create(newBorrower).Error; err != nil {
 		return nil, err
 	}
 	return newBorrower, nil
@@ -45,17 +38,9 @@ func (r *borrowerRepository) Insert(newBorrower *entity.Borrower) (*entity.Borro
 func (r *borrowerRepository) FindByID(id int64) (*entity.Borrower, error) {
 	var borrower entity.Borrower
 
-	stmt, err := r.db.Prepare("SELECT id, username, password, name, alamat, phone_number FROM borrower WHERE id = $1")
-	if err != nil {
+	if err := r.db.Where("id = ?", id).Find(&borrower).Error; err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
-
-	stmt.QueryRow(id).Scan(&borrower.ID, &borrower.Username, &borrower.Password, &borrower.Name, &borrower.Alamat, &borrower.Phone_Number)
-	if err != nil {
-		return nil, err
-	}
-
 	return &borrower, nil
 }
 
@@ -63,72 +48,48 @@ func (r *borrowerRepository) FindByID(id int64) (*entity.Borrower, error) {
 func (r *borrowerRepository) FindByUsername(username string) (*entity.Borrower, error) {
 	var borrower entity.Borrower
 
-	stmt, err := r.db.Prepare("SELECT id, username, password, name, alamat, phone_number FROM borrower WHERE username = $1")
-	if err != nil {
+	if err := r.db.Where("username = ?", username).Find(&borrower).Error; err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
-
-	err = stmt.QueryRow(username).Scan(&borrower.ID, &borrower.Username, &borrower.Password, &borrower.Name, &borrower.Alamat, &borrower.Phone_Number)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil // Tidak ada borrower dengan username tersebut
-		}
-		return nil, err
-	}
-
 	return &borrower, nil
 }
 
 // ======================= FIND ALL ==============================
 func (r *borrowerRepository) FindAll() ([]entity.Borrower, error) {
 	var borrowers []entity.Borrower
-	rows, err := r.db.Query("SELECT id, username, password, name, alamat, phone_number, created_at FROM borrower")
-	if err != nil {
+
+	if err := r.db.Find(&borrowers).Error; err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var borrower entity.Borrower
-		err := rows.Scan(&borrower.ID, &borrower.Username, &borrower.Password, &borrower.Name, &borrower.Alamat, &borrower.Phone_Number, &borrower.Created_At)
-		if err != nil {
-			return nil, err
-		}
-		borrowers = append(borrowers, borrower)
-	}
-
 	return borrowers, nil
 }
 
 // ======================= UPDATE ==============================
 func (r *borrowerRepository) Update(updateBorrower *entity.Borrower) (*entity.Borrower, error) {
-	stmt, err := r.db.Prepare("UPDATE borrower SET username = $1, password = $2, name = $3, alamat = $4, phone_number = $5 WHERE id = $6")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(updateBorrower.Username, updateBorrower.Password, updateBorrower.Name, updateBorrower.Alamat, updateBorrower.Phone_Number, &updateBorrower.ID)
-	if err != nil {
+	var bor entity.Borrower
+	if err := r.db.Where("id = ?", updateBorrower.ID).First(&bor).Error; err != nil {
 		return nil, err
 	}
 
-	return updateBorrower, err
+	create_at := bor.Created_At
+
+	bor.Username = updateBorrower.Username
+	bor.Password = updateBorrower.Password
+	bor.Name = updateBorrower.Name
+	bor.Alamat = updateBorrower.Alamat
+	bor.Phone_Number = updateBorrower.Phone_Number
+	bor.Created_At = create_at
+
+	if err := r.db.Save(&bor).Error; err != nil {
+		return nil, err
+	}
+	return &bor, nil
 }
 
 // ======================= DELETE ==============================
 func (r *borrowerRepository) Delete(deletedBorrower *entity.Borrower) error {
-	stmt, err := r.db.Prepare("DELETE FROM borrower WHERE id = $1")
-	if err != nil {
+	if err := r.db.Delete(deletedBorrower).Error; err != nil {
 		return err
 	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(deletedBorrower.ID)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

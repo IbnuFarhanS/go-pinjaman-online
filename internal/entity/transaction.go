@@ -7,12 +7,12 @@ import (
 )
 
 type Transaction struct {
-	ID                 int64           `JSON:"id"`
-	ID_Borrower        Borrower        `JSON:"id_borrower"`
-	ID_Lender          Lender          `JSON:"id_lender"`
-	ID_Loan_Product    Loan_Product    `JSON:"id_loan_product"`
-	Loan_Amount        decimal.Decimal `JSON:"loan_amount"`
-	Transaction_Date   time.Time       `JSON:"transaction_date"`
-	Due_Date           time.Time       `JSON:"due_date"`
-	Transaction_Status string          `JSON:"transaction_status"`
+	ID                 int64           `json:"id"`
+	ID_Borrower        Borrower        `json:"borrower"`
+	ID_Lender          Lender          `json:"lender"`
+	ID_Loan_Product    Loan_Product    `json:"loan_product"`
+	Loan_Amount        decimal.Decimal `json:"loan_amount"`
+	Transaction_Date   time.Time       `json:"transaction_date"`
+	Due_Date           string       `json:"due_date"`
+	Transaction_Status string          `json:"transaction_status"`
 }
