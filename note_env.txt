@@ -4,3 +4,11 @@
 
 CONNECTION_STRING="host=localhost user=postgres password=sql1234 dbname=pinjaman_online sslmode=disable"
 SERVER_ADDRESS="localhost:8080"
+
+ID:           1,
+		Username:     "borrower 1",
+		Password:     "password 1",
+		Name:         "user 1",
+		Alamat:       "Bandung",
+		Phone_Number: "084758789568",
+		Created_At:   time.Now(),

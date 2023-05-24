@@ -29,7 +29,9 @@ func (s *Server) Init(ConnStr string) error {
 		return err
 	}
 
-	db.AutoMigrate(&entity.Borrower{}, &entity.Lender{}, &entity.Loan_Product{})
+	db.Table("borrower").Find(&entity.Borrower{})
+	db.Table("lender").Find(&entity.Lender{})
+	db.Table("loan_product").Find(&entity.Loan_Product{})
 
 	borrowerRepo := repository.NewBorrowerRepository(db)
 	borrowerUsecase := usecase.NewBorrowerUsecase(borrowerRepo)
