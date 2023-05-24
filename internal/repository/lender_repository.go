@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"time"
 
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/entity"
@@ -48,7 +49,10 @@ func (r *lenderRepository) FindByID(id int64) (*entity.Lender, error) {
 func (r *lenderRepository) FindByName(name string) (*entity.Lender, error) {
 	var lender entity.Lender
 
-	if err := r.db.Where("name = ?", name).Find(&lender).Error; err != nil {
+	if err := r.db.Where("name = ?", name).First(&lender).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &lender, nil

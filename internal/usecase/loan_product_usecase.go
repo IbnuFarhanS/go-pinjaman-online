@@ -36,6 +36,7 @@ func (u *loanProductUsecase) Insert(newLoanProduct *entity.Loan_Product) (*entit
 	if existingLoan_Product != nil {
 		return nil, errors.New("name is already use")
 	}
+
 	// Validate description
 	if newLoanProduct.Description == "" {
 		return nil, errors.New("description is required")

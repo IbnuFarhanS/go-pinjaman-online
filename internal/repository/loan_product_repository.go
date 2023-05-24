@@ -1,10 +1,11 @@
 package repository
 
 import (
-	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/entity"
+	"gorm.io/gorm"
 )
 
 type LoanProductRepository interface {
@@ -17,26 +18,18 @@ type LoanProductRepository interface {
 }
 
 type loanProductRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewLoanProductRepository(db *sql.DB) LoanProductRepository {
+func NewLoanProductRepository(db *gorm.DB) LoanProductRepository {
 	return &loanProductRepository{db}
 }
 
 // ======================= INSERT ==============================
 func (r *loanProductRepository) Insert(newLoanProduct *entity.Loan_Product) (*entity.Loan_Product, error) {
-	stmt, err := r.db.Prepare("INSERT INTO loan_product(name, description, persyaratan, created_at) VALUES ($1,$2,$3,$4) RETURNING id")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
 	currentTime := time.Now()
 	newLoanProduct.Created_At = currentTime
-
-	err = stmt.QueryRow(newLoanProduct.Name, newLoanProduct.Description, newLoanProduct.Persyaratan, newLoanProduct.Created_At).Scan(&newLoanProduct.ID)
-	if err != nil {
+	if err := r.db.Create(newLoanProduct).Error; err != nil {
 		return nil, err
 	}
 	return newLoanProduct, nil
@@ -46,17 +39,9 @@ func (r *loanProductRepository) Insert(newLoanProduct *entity.Loan_Product) (*en
 func (r *loanProductRepository) FindByID(id int64) (*entity.Loan_Product, error) {
 	var loan_product entity.Loan_Product
 
-	stmt, err := r.db.Prepare("SELECT id, name, description, persyaratan, created_at FROM loan_product WHERE id = $1")
-	if err != nil {
+	if err := r.db.Where("id = ?", id).Find(&loan_product).Error; err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
-
-	stmt.QueryRow(id).Scan(&loan_product.ID, &loan_product.Name, &loan_product.Description, &loan_product.Persyaratan, &loan_product.Created_At)
-	if err != nil {
-		return nil, err
-	}
-
 	return &loan_product, nil
 }
 
@@ -64,72 +49,49 @@ func (r *loanProductRepository) FindByID(id int64) (*entity.Loan_Product, error)
 func (r *loanProductRepository) FindByName(name string) (*entity.Loan_Product, error) {
 	var loan_product entity.Loan_Product
 
-	stmt, err := r.db.Prepare("SELECT * FROM loan_product WHERE name = $1")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	err = stmt.QueryRow(name).Scan(&loan_product.ID, &loan_product.Name, &loan_product.Description, &loan_product.Persyaratan, &loan_product.Created_At)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil // Tidak ada loan_product dengan name tersebut
+	if err := r.db.Where("name = ?", name).First(&loan_product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, err
 	}
-
 	return &loan_product, nil
 }
 
 // ======================= FIND ALL ==============================
 func (r *loanProductRepository) FindAll() ([]entity.Loan_Product, error) {
-	var loanProducts []entity.Loan_Product
-	rows, err := r.db.Query("SELECT id, name, description, persyaratan, created_at FROM loan_product")
-	if err != nil {
+	var loan_products []entity.Loan_Product
+
+	if err := r.db.Find(&loan_products).Error; err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var loan_product entity.Loan_Product
-		err := rows.Scan(&loan_product.ID, &loan_product.Name, &loan_product.Description, &loan_product.Persyaratan, &loan_product.Created_At)
-		if err != nil {
-			return nil, err
-		}
-		loanProducts = append(loanProducts, loan_product)
-	}
-
-	return loanProducts, nil
+	return loan_products, nil
 }
 
 // ======================= UPDATE ==============================
 func (r *loanProductRepository) Update(updateLoanProduct *entity.Loan_Product) (*entity.Loan_Product, error) {
-	stmt, err := r.db.Prepare("UPDATE loan_product SET name = $1, description = $2, persyaratan = $3, created_at = $4 WHERE id = $5")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(updateLoanProduct.Name, updateLoanProduct.Description, updateLoanProduct.Persyaratan, updateLoanProduct.Created_At, &updateLoanProduct.ID)
-	if err != nil {
+	var lp entity.Loan_Product
+	if err := r.db.Where("id = ?", updateLoanProduct.ID).First(&lp).Error; err != nil {
 		return nil, err
 	}
 
-	return updateLoanProduct, err
+	create_at := lp.Created_At
+
+	lp.Name = updateLoanProduct.Name
+	lp.Description = updateLoanProduct.Description
+	lp.Persyaratan = updateLoanProduct.Persyaratan
+	lp.Created_At = create_at
+
+	if err := r.db.Save(&lp).Error; err != nil {
+		return nil, err
+	}
+	return &lp, nil
 }
 
 // ======================= DELETE ==============================
-func (r *loanProductRepository) Delete(deletedLoanProduct *entity.Loan_Product) error {
-	stmt, err := r.db.Prepare("DELETE FROM loan_product WHERE id = $1")
-	if err != nil {
+func (r *loanProductRepository) Delete(deletedLender *entity.Loan_Product) error {
+	if err := r.db.Delete(deletedLender).Error; err != nil {
 		return err
 	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(deletedLoanProduct.ID)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

@@ -29,8 +29,7 @@ func (s *Server) Init(ConnStr string) error {
 		return err
 	}
 
-	db.AutoMigrate(&entity.Borrower{})
-	db.AutoMigrate(&entity.Lender{})
+	db.AutoMigrate(&entity.Borrower{}, &entity.Lender{}, &entity.Loan_Product{})
 
 	borrowerRepo := repository.NewBorrowerRepository(db)
 	borrowerUsecase := usecase.NewBorrowerUsecase(borrowerRepo)
@@ -38,11 +37,11 @@ func (s *Server) Init(ConnStr string) error {
 	lenderRepo := repository.NewLenderRepository(db)
 	lenderUsecase := usecase.NewLenderUsecase(lenderRepo)
 
+	loanProductRepo := repository.NewLoanProductRepository(db)
+	loanProductUsecase := usecase.NewLoanProductUsecase(loanProductRepo)
+
 	// loanHistoryRepo := repository.NewLoanHistoryRepository(db)
 	// loanHistoryUsecase := usecase.NewLoanHistoryUsecase(loanHistoryRepo)
-
-	// loanProductRepo := repository.NewLoanProductRepository(db)
-	// loanProductUsecase := usecase.NewLoanProductUsecase(loanProductRepo)
 
 	// paymentRepo := repository.NewPaymentRepository(db)
 	// paymentUsecase := usecase.NewPaymentUsecase(paymentRepo)
@@ -57,8 +56,8 @@ func (s *Server) Init(ConnStr string) error {
 
 	delivery.NewBorrowerRouter(api, borrowerUsecase)
 	delivery.NewLenderRouter(api, lenderUsecase)
+	delivery.NewLoanProductRouter(api, loanProductUsecase)
 	// delivery.NewLoanHistoryRouter(api, loanHistoryUsecase)
-	// delivery.NewLoanProductRouter(api, loanProductUsecase)
 	// delivery.NewPaymentRouter(api, paymentUsecase)
 	// delivery.NewTransactionRouter(api, traUsecase)
 
