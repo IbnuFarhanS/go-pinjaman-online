@@ -50,7 +50,7 @@ func (s *server) Init(ConnStr string) error {
 
 	r := gin.Default()
 	api := r.Group("/api")
-	
+
 	delivery.NewBorrowerRouter(api, borrowerUsecase)
 	delivery.NewLenderRouter(api, lenderUsecase)
 	delivery.NewLoanHistoryRouter(api, loanHistoryUsecase)

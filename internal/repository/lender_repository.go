@@ -9,6 +9,7 @@ import (
 type LenderRepository interface {
 	Insert(newLender *entity.Lender) (*entity.Lender, error)
 	FindByID(id int64) (*entity.Lender, error)
+	FindByName(name string) (*entity.Lender, error)
 	FindAll() ([]entity.Lender, error)
 	Update(updateLender *entity.Lender) (*entity.Lender, error)
 	Delete(deletedLender *entity.Lender) error
@@ -49,6 +50,27 @@ func (r *lenderRepository) FindByID(id int64) (*entity.Lender, error) {
 
 	stmt.QueryRow(id).Scan(&lender.ID, &lender.Name, &lender.Created_At)
 	if err != nil {
+		return nil, err
+	}
+
+	return &lender, nil
+}
+
+// ======================= FIND BY NAME ==============================
+func (r *lenderRepository) FindByName(name string) (*entity.Lender, error) {
+	var lender entity.Lender
+
+	stmt, err := r.db.Prepare("SELECT id, name FROM lender WHERE name = $1")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(name).Scan(&lender.ID, &lender.Name)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Tidak ada lender dengan name tersebut
+		}
 		return nil, err
 	}
 

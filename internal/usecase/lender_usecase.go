@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"errors"
+
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/entity"
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/repository"
 )
@@ -22,6 +24,19 @@ func NewLenderUsecase(lenderRepo repository.LenderRepository) LenderUsecase {
 }
 
 func (u *lenderUsecase) Insert(newLender *entity.Lender) (*entity.Lender, error) {
+	// Validate name
+	if newLender.Name == "" {
+		return nil, errors.New("name is required")
+	}
+	// Check if name already exists
+	existingLender, err := u.lenderRepo.FindByName(newLender.Name)
+	if err != nil {
+		return nil, err
+	}
+	if existingLender != nil {
+		return nil, errors.New("name is already use")
+	}
+
 	return u.lenderRepo.Insert(newLender)
 }
 
@@ -34,6 +49,19 @@ func (u *lenderUsecase) FindAll() ([]entity.Lender, error) {
 }
 
 func (u *lenderUsecase) Update(updateLender *entity.Lender) (*entity.Lender, error) {
+	// Validate name
+	if updateLender.Name == "" {
+		return nil, errors.New("name is required")
+	}
+	// Check if name already exists
+	existingLender, err := u.lenderRepo.FindByName(updateLender.Name)
+	if err != nil {
+		return nil, err
+	}
+	if existingLender != nil {
+		return nil, errors.New("name is already use")
+	}
+
 	return u.lenderRepo.Update(updateLender)
 }
 

@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"errors"
+
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/entity"
 	"github.com/IbnuFarhanS/go-pinjaman-online/internal/repository"
 )
@@ -22,6 +24,27 @@ func NewLoanProductUsecase(loanProductRepo repository.LoanProductRepository) Loa
 }
 
 func (u *loanProductUsecase) Insert(newLoanProduct *entity.Loan_Product) (*entity.Loan_Product, error) {
+	// Validate name
+	if newLoanProduct.Name == "" {
+		return nil, errors.New("name is required")
+	}
+	// Check if name already exists
+	existingLoan_Product, err := u.loanProductRepo.FindByName(newLoanProduct.Name)
+	if err != nil {
+		return nil, err
+	}
+	if existingLoan_Product != nil {
+		return nil, errors.New("name is already use")
+	}
+	// Validate description
+	if newLoanProduct.Description == "" {
+		return nil, errors.New("description is required")
+	}
+	// Validate persyaratan
+	if newLoanProduct.Persyaratan == "" {
+		return nil, errors.New("persyaratan is required")
+	}
+
 	return u.loanProductRepo.Insert(newLoanProduct)
 }
 
@@ -34,6 +57,27 @@ func (u *loanProductUsecase) FindAll() ([]entity.Loan_Product, error) {
 }
 
 func (u *loanProductUsecase) Update(updateLoanProduct *entity.Loan_Product) (*entity.Loan_Product, error) {
+	// Validate name
+	if updateLoanProduct.Name == "" {
+		return nil, errors.New("name is required")
+	}
+	// Check if name already exists
+	existingLoan_Product, err := u.loanProductRepo.FindByName(updateLoanProduct.Name)
+	if err != nil {
+		return nil, err
+	}
+	if existingLoan_Product != nil {
+		return nil, errors.New("name is already use")
+	}
+	// Validate description
+	if updateLoanProduct.Description == "" {
+		return nil, errors.New("description is required")
+	}
+	// Validate persyaratan
+	if updateLoanProduct.Persyaratan == "" {
+		return nil, errors.New("persyaratan is required")
+	}
+
 	return u.loanProductRepo.Update(updateLoanProduct)
 }
 

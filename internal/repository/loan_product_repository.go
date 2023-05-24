@@ -9,6 +9,7 @@ import (
 type LoanProductRepository interface {
 	Insert(newLoanProduct *entity.Loan_Product) (*entity.Loan_Product, error)
 	FindByID(id int64) (*entity.Loan_Product, error)
+	FindByName(name string) (*entity.Loan_Product, error)
 	FindAll() ([]entity.Loan_Product, error)
 	Update(updateLoanProduct *entity.Loan_Product) (*entity.Loan_Product, error)
 	Delete(deletedLoanProduct *entity.Loan_Product) error
@@ -49,6 +50,27 @@ func (r *loanProductRepository) FindByID(id int64) (*entity.Loan_Product, error)
 
 	stmt.QueryRow(id).Scan(&loan_product.ID, &loan_product.Name, &loan_product.Description, &loan_product.Persyaratan, &loan_product.Created_At)
 	if err != nil {
+		return nil, err
+	}
+
+	return &loan_product, nil
+}
+
+// ======================= FIND BY NAME ==============================
+func (r *loanProductRepository) FindByName(name string) (*entity.Loan_Product, error) {
+	var loan_product entity.Loan_Product
+
+	stmt, err := r.db.Prepare("SELECT * FROM loan_product WHERE name = $1")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(name).Scan(&loan_product.ID, &loan_product.Name, &loan_product.Description, &loan_product.Persyaratan, &loan_product.Created_At)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Tidak ada loan_product dengan name tersebut
+		}
 		return nil, err
 	}
 

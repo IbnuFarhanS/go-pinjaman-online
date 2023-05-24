@@ -10,6 +10,7 @@ import (
 type BorrowerRepository interface {
 	Insert(newBorrower *entity.Borrower) (*entity.Borrower, error)
 	FindByID(id int64) (*entity.Borrower, error)
+	FindByUsername(username string) (*entity.Borrower, error)
 	FindAll() ([]entity.Borrower, error)
 	Update(updateBorrower *entity.Borrower) (*entity.Borrower, error)
 	Delete(deletedBorrower *entity.Borrower) error
@@ -52,6 +53,27 @@ func (r *borrowerRepository) FindByID(id int64) (*entity.Borrower, error) {
 
 	stmt.QueryRow(id).Scan(&borrower.ID, &borrower.Username, &borrower.Password, &borrower.Name, &borrower.Alamat, &borrower.Phone_Number)
 	if err != nil {
+		return nil, err
+	}
+
+	return &borrower, nil
+}
+
+// ======================= FIND BY USERNAME ==============================
+func (r *borrowerRepository) FindByUsername(username string) (*entity.Borrower, error) {
+	var borrower entity.Borrower
+
+	stmt, err := r.db.Prepare("SELECT id, username, password, name, alamat, phone_number FROM borrower WHERE username = $1")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(username).Scan(&borrower.ID, &borrower.Username, &borrower.Password, &borrower.Name, &borrower.Alamat, &borrower.Phone_Number)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Tidak ada borrower dengan username tersebut
+		}
 		return nil, err
 	}
 
